@@ -17,5 +17,17 @@ namespace WhosThatPokemonAPI.Models
 
         // Pour déterminer si le user a deviné le pokémon en question ou non
         public bool IsWin { get; set; }
+
+        public UserPokemon()
+        {
+
+        }
+
+        public UserPokemon(Pokemon pokemon, User user, bool isWin)
+        {
+            Pokemon = pokemon;
+            User = user;
+            IsWin = isWin;
+        }
     }
 }

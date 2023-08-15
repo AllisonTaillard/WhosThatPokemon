@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using WhosThatPokemonAPI.Validators;
 
 namespace WhosThatPokemonAPI.Models
 {
@@ -23,6 +24,7 @@ namespace WhosThatPokemonAPI.Models
         public int Xp { get; set; }
 
         [Column("password")]
+        [PasswordValidator]
         public string Password { get; set; }
 
         [Column("isAdmin")]

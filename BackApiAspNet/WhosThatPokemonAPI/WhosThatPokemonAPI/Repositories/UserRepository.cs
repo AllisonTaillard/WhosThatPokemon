@@ -72,5 +72,25 @@ namespace WhosThatUserAPI.Repositories
 
             return await _dbContext.SaveChangesAsync() > 0;
         }
+
+        public async Task<bool> AddPokemonToUser(User user, UserPokemon userPokemon)
+        {
+            User userFromDb = await GetById(user.Id);
+            if (userFromDb == null) return false;
+
+            userFromDb.Pokemons.Add(userPokemon);
+
+            return await _dbContext.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> RemovePokemonFromUser(User user, UserPokemon userPokemon)
+        {
+            User userFromDb = await GetById(user.Id);
+            if (userFromDb == null) return false;
+
+            userFromDb.Pokemons.Remove(userPokemon);
+
+            return await _dbContext.SaveChangesAsync() > 0;
+        }
     }
 }

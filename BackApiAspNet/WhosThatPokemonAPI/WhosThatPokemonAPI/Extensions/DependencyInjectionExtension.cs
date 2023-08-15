@@ -92,9 +92,8 @@ namespace WhosThatPokemonAPI.Extensions
 
         private static void AddRepositories(this WebApplicationBuilder builder)
         {
-            //builder.Services.AddScoped<IRepository<Pokemon>, PokemonRepository>()
             builder.Services.AddScoped<PokemonRepository, PokemonRepository>();
-            builder.Services.AddScoped<IRepository<User>, UserRepository>();
+            builder.Services.AddScoped<UserRepository, UserRepository>();
             builder.Services.AddScoped<IRepository<Type>, TypeRepository>();
             builder.Services.AddScoped<IRepository<UserPokemon>, UserPokemonRepository>();
         }
