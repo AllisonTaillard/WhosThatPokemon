@@ -96,6 +96,7 @@ namespace WhosThatPokemonAPI.Extensions
             builder.Services.AddScoped<UserRepository, UserRepository>();
             builder.Services.AddScoped<IRepository<Type>, TypeRepository>();
             builder.Services.AddScoped<IRepository<UserPokemon>, UserPokemonRepository>();
+            builder.Services.AddScoped<Encryption>();
         }
 
 

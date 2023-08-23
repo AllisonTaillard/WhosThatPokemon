@@ -32,11 +32,15 @@ namespace WhosThatPokemonAPI.Models
             Types = new List<Type>();
         }
 
-        public Pokemon(string name, List<Type> types, string picture, List<UserPokemon> users)
+        public Pokemon(string name, string picture) : this()
         {
             Name = name;
-            Types = types;
             Picture = picture;
+        }
+
+        public Pokemon(string name, List<Type> types, string picture, List<UserPokemon> users) : this(name, picture)
+        {
+            Types = types;
             Users = users;
         }
 

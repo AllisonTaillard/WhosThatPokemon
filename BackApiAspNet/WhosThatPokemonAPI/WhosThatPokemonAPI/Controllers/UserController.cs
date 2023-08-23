@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -18,18 +19,18 @@ namespace WhosThatPokemonAPI.Controllers
     {
         private readonly PokemonRepository _pokeRepo;
         private readonly UserRepository _userRepo;
-
-        // dependency injection ?
-        private Encryption _encryption = new();
+        private Encryption _encryption;
         private readonly AppSettings _appSettings;
 
-        public UserController(PokemonRepository pokeRepo, UserRepository userRepo, IOptions<AppSettings> appSettings)
+        public UserController(PokemonRepository pokeRepo, UserRepository userRepo, Encryption encryption, IOptions<AppSettings> appSettings)
         {
             _pokeRepo = pokeRepo;
             _userRepo = userRepo;
+            _encryption = encryption;
             _appSettings = appSettings.Value;
         }
 
+        // Autorisé pour tout le monde
         [HttpGet("/users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -38,19 +39,29 @@ namespace WhosThatPokemonAPI.Controllers
             return Ok(users);
         }
 
+        // Autorisé pour tout le monde
+        [HttpGet("/user/{id}")]
+        public async Task<IActionResult> GetUserById(int id)
+        {
+            User user = await _userRepo.GetById(id);
+            if (user == null) return NotFound("Aucun utilisateur trouvé avec cet id...");
+            return Ok(user);
+        }
+
+        // Autorisé pour tout le monde
         [HttpPost("/user")]
         public async Task<IActionResult> AddUser([FromBody] User user)
         {
             if (await _userRepo.Get(u => u.Pseudo == user.Pseudo) != null) return BadRequest("Un utilisateur existe déjà avec ce pseudo !");
 
-            user.Xp = 0;
-            user.Level = 1;
-            user.Password = _encryption.EncryptPassword(user.Password);
+            // Création d'un nouvel User pour éviter les problèmes dans le cas où un id est indiqué dans le json
+            User userToAdd = new User(user.Pseudo, _encryption.EncryptPassword(user.Password));
             
-            if (await _userRepo.Add(user)) return Ok("User ajouté avec succès !");
+            if (await _userRepo.Add(userToAdd)) return Ok("User ajouté avec succès !");
             return BadRequest("Erreur lors de l'ajout du user...");
         }
 
+        // Autorisé pour tout le monde
         [HttpPut("/user/{id}")]
         public async Task<IActionResult> UpdateUser([FromBody] User user, int id)
         {
@@ -63,17 +74,19 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de la modification du user...");
         }
 
+        // Autorisé pour tout le monde
         [HttpDelete("/user/{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             User userFromDb = await _userRepo.GetById(id);
             if (userFromDb == null) return NotFound("L'utilisateur demandé n'a pas été trouvé...");
 
-            if (await _userRepo.Delete(id)) return Ok("Utilisateur modifié avec succès !");
+            if (await _userRepo.Delete(id)) return Ok("Utilisateur supprimé avec succès !");
 
-            return BadRequest("Erreur lors de la modification de l'utilisateur...");
+            return BadRequest("Erreur lors de la suppression de l'utilisateur...");
         }
 
+        // Autorisé pour tout le monde
         [HttpPost("/user/add-pokemon/{userId}/{pokemonId}")] // bool isWin: ajouter un [FromBody ?]
         public async Task<IActionResult> AddPokemonToUser(int userId, int pokemonId, bool isWin)
         {
@@ -96,6 +109,7 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de l'ajout du pokémon...");
         }
 
+        // Autorisé pour tout le monde
         [HttpDelete("/user/remove-pokemon/{userId}/{pokemonId}")]
         public async Task<IActionResult> RemovePokemonFromUser(int userId, int pokemonId)
         {
@@ -113,6 +127,7 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de la suppression du pokémon...");
         }
 
+        // Autorisé pour tout le monde
         [HttpPost("/login")]
         public async Task<IActionResult> Login([FromBody] LoginRequestDTO loginRequest) // loginRequest = Pseudo + Password
         {

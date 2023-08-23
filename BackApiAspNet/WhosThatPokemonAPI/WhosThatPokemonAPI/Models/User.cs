@@ -38,5 +38,18 @@ namespace WhosThatPokemonAPI.Models
         {
             return Pseudo;
         }
+
+        public User()
+        {
+            Xp = 0;
+            Level = 1;
+            IsAdmin = false;
+        }
+
+        public User(string pseudo, string password) : this()
+        {
+            Pseudo = pseudo;
+            Password = password;
+        }
     }
 }

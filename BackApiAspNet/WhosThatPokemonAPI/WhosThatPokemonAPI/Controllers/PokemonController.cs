@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WhosThatPokemonAPI.Models;
 using WhosThatPokemonAPI.Repositories;
+using WhosThatPokemonAPI.Helpers;
 using Type = WhosThatPokemonAPI.Models.Type;
 
 namespace WhosThatPokemonAPI.Controllers
@@ -19,6 +20,7 @@ namespace WhosThatPokemonAPI.Controllers
             _typeRepo = typeRepo;
         }
 
+        // Autorisé pour tout le monde
         [HttpGet("/pokemons")]
         public async Task<IActionResult> GetAllPokemons()
         {
@@ -27,14 +29,33 @@ namespace WhosThatPokemonAPI.Controllers
             return Ok(pokemons);
         }
 
+        // Autorisé pour tout le monde
+        [HttpGet("/pokemon/{id}")]
+        public async Task<IActionResult> GetPokemonById(int id)
+        {
+            Pokemon pokemon = await _pokeRepo.GetById(id);
+            if (pokemon == null) return NotFound("Aucun pokémon trouvé avec cet id...");
+            return Ok(pokemon);
+        }
+
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpPost("/pokemon")]
         public async Task<IActionResult> AddPokemon([FromBody] Pokemon pokemon)
         {
             if (await _pokeRepo.Get(p => p.Name == pokemon.Name) != null) return BadRequest("Un pokémon existe déjà avec ce nom !");
-            if (await _pokeRepo.Add(pokemon)) return Ok("Pokémon ajouté avec succès !");
+
+            // Création d'un nouveau Pokémon pour éviter les problèmes dans le cas où un id est indiqué dans le json
+            Pokemon pokemonToAdd = new Pokemon(pokemon.Name, pokemon.Picture);
+
+            if (await _pokeRepo.Add(pokemonToAdd)) return Ok("Pokémon ajouté avec succès !");
             return BadRequest("Erreur lors de l'ajout du Pokémon...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpPut("/pokemon/{id}")]
         public async Task<IActionResult> UpdatePokemon([FromBody] Pokemon pokemon, int id)
         {
@@ -47,17 +68,23 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de la modification du Pokémon...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpDelete("/pokemon/{id}")]
         public async Task<IActionResult> DeletePokemon(int id)
         {
             Pokemon pokemonFromDb = await _pokeRepo.GetById(id);
             if (pokemonFromDb == null) return NotFound("Le pokémon demandé n'a pas été trouvé...");
 
-            if (await _pokeRepo.Delete(id)) return Ok("Pokémon modifié avec succès !");
+            if (await _pokeRepo.Delete(id)) return Ok("Pokémon supprimé avec succès !");
 
-            return BadRequest("Erreur lors de la modification du Pokémon...");
+            return BadRequest("Erreur lors de la suppression du Pokémon...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpPost("/pokemon/add-existing-type/{pokemonId}/{typeId}")]
         public async Task<IActionResult> AddExistingTypeToPokemon(int pokemonId, int typeId)
         {
@@ -91,6 +118,9 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de l'ajout du type...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpDelete("/pokemon/remove-type/{pokemonId}/{typeId}")]
         public async Task<IActionResult> RemoveTypeFromPokemon(int pokemonId, int typeId)
         {

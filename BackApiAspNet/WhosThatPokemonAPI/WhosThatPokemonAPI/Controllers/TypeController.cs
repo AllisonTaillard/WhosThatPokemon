@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using WhosThatPokemonAPI.Repositories;
+using WhosThatPokemonAPI.Helpers;
 using Type = WhosThatPokemonAPI.Models.Type;
 
 namespace WhosThatPokemonAPI.Controllers
@@ -15,6 +18,7 @@ namespace WhosThatPokemonAPI.Controllers
             _typeRepo = typeRepo;
         }
 
+        // Autorisé pour tout le monde
         [HttpGet("/types")]
         public async Task<IActionResult> GetAllTypes()
         {
@@ -23,14 +27,33 @@ namespace WhosThatPokemonAPI.Controllers
             return Ok(types);
         }
 
+        // Autorisé pour tout le monde
+        [HttpGet("/type/{id}")]
+        public async Task<IActionResult> GetTypeById(int id)
+        {
+            Type type = await _typeRepo.GetById(id);
+            if (type == null) return NotFound("Aucun type trouvé avec cet id...");
+            return Ok(type);
+        }
+
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpPost("/type")]
         public async Task<IActionResult> AddType([FromBody] Type type)
         {
             if (await _typeRepo.Get(t => t.Name == type.Name) != null) return BadRequest("Un type existe déjà avec ce nom !");
-            if (await _typeRepo.Add(type)) return Ok("Type ajouté avec succès !");
+
+            // Création d'un nouvel User pour éviter les problèmes dans le cas où un id est indiqué dans le json
+            Type typeToAdd = new Type(type.Name);
+
+            if (await _typeRepo.Add(typeToAdd)) return Ok("Type ajouté avec succès !");
             return BadRequest("Erreur lors de l'ajout du type...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpPut("/type/{id}")]
         public async Task<IActionResult> UpdateType([FromBody] Type type, int id)
         {
@@ -43,15 +66,18 @@ namespace WhosThatPokemonAPI.Controllers
             return BadRequest("Erreur lors de la modification du type...");
         }
 
+        // Autorisé seulement pour le rôle Admin
+        [Authorize(Roles = Constants.RoleAdmin)]
+        [Authorize(Policy = Constants.PolicyAdmin)]
         [HttpDelete("/type/{id}")]
         public async Task<IActionResult> DeleteType(int id)
         {
             Type typeFromDb = await _typeRepo.GetById(id);
             if (typeFromDb == null) return NotFound("Le type demandé n'a pas été trouvé...");
 
-            if (await _typeRepo.Delete(id)) return Ok("Type modifié avec succès !");
+            if (await _typeRepo.Delete(id)) return Ok("Type supprimé avec succès !");
 
-            return BadRequest("Erreur lors de la modification du Type...");
+            return BadRequest("Erreur lors de la suppression du Type...");
         }
     }
 }
