@@ -55,9 +55,6 @@ export const addUser = (async (user) => {
     let bodyFormData = new FormData();
     bodyFormData.append("pseudo", user.pseudo);
     bodyFormData.append("password", user.password);
-    bodyFormData.append("level", user.level);
-    bodyFormData.append("xp", user.xp);
-    bodyFormData.append("isAdmin", user.isAdmin);
 
     return await axios({
         method: "post",

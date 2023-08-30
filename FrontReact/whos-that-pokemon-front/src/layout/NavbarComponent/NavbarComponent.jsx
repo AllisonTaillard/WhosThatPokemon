@@ -7,10 +7,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { logout } from '../../services/AuthenticationService';
 import HomeView from '../../views/HomeView/HomeView';
 import PlayView from '../../views/PlayView/PlayView';
-import LoginView from '../../views/LoginView/LoginView';
+import AuthenticationView from '../../views/AuthenticationView/AuthenticationView';
 import RankingView from '../../views/RankingView/RankingView';
 import UserProfileView from '../../views/UserProfileView/UserProfileView';
-import RegistrationView from '../../views/RegistrationView/RegistrationView';
 import AdminView from '../../views/AdminView/AdminView';
 
 const NavbarComponent = () => {
@@ -29,8 +28,6 @@ const NavbarComponent = () => {
 
         if (hasJWT())
             fetchActiveUser();
-
-        console.log(activeUser);
     }, []);
 
     return (
@@ -100,7 +97,7 @@ const NavbarComponent = () => {
                             hasJWT() ?
                                 <PlayView />
                                 : 
-                                <LoginView activeUser={activeUser} setActiveUser={setActiveUser}/>
+                                <AuthenticationView isNew={false} errorMessage={"Vous devez être connecté pour pouvoir jouer"}/>
                         }
                     />
 
@@ -113,7 +110,7 @@ const NavbarComponent = () => {
                             hasJWT() ?
                                 <UserProfileView />
                                 :
-                                <LoginView activeUser={activeUser} setActiveUser={setActiveUser}/>
+                                <AuthenticationView isNew={false}/>
                         }
                     />
                     <Route
@@ -121,9 +118,9 @@ const NavbarComponent = () => {
                         element=
                         {
                             !hasJWT() ?
-                                <LoginView activeUser={activeUser} setActiveUser={setActiveUser}/>
+                                <AuthenticationView isNew={false}/>
                                 :
-                                <HomeView />
+                                <HomeView message={"Re-bonjour, " + activeUser.pseudo + " !"}/>
                         }
                     />
                     <Route
@@ -131,9 +128,9 @@ const NavbarComponent = () => {
                         element=
                         {
                             !hasJWT() ?
-                                <RegistrationView />
+                                <AuthenticationView isNew={true}/>
                                 :
-                                <HomeView />
+                                <HomeView message={"Bienvenue " + activeUser.pseudo + " !"}/>
                         }
                     />
                     <Route
