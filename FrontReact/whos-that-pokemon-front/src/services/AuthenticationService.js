@@ -30,3 +30,9 @@ export const setAuthToken = token => {
   export const hasJWT = () => {
     return localStorage.getItem("token") ? true : false;
 }
+
+export const logout = () => {
+    localStorage.removeItem('id');
+    localStorage.removeItem('token');
+    window.location.reload();
+}

@@ -12,7 +12,7 @@ function App() {
     setAuthToken(token); // si oui, on met le token dans le header axios
 
   return (
-    <div className="App">
+    <div className="container App">
       <HeaderComponent/>
       <NavbarComponent/>
       <FooterComponent/>
